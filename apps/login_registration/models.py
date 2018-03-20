@@ -58,6 +58,31 @@ class UserManager(models.Manager):
             )
             return (true,user)
 
+    def login(self, post_data):
+        errors=[]
+        if len(post_data["email"])<1:
+            errors.append("Email is required")
+        elif not EMAIL_REGEX.match(post_data["email"]):
+            errors.append("Invalid email")
+        else:
+            users_with_matching_email = User.objects.filter(email=post_data["email"].lower())
+            if len(users_with_matching_email)<1:
+                errors.append("Email does not exist")
+
+        if len(post_data["password"])<1:
+            errors.append("Password is required")
+
+        if len(response["errors"])<1:
+            user = users_with_matching_email[0]
+            if bcrypt.checkpw(post_data["email"].encode(), user.password.encode()):
+                return (True,user)
+            else:
+                errors.append("Password is incorrect")
+
+        if len(response["errors"])>0:
+            return (False,errors)
+
+
 class User(models.Model):
     first_name = models.Charfield(max_length=255)
     last_name = models.Charfield(max_length=255)
